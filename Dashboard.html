@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Workspace</title>
+    <link rel="stylesheet" href="Styles.css">
+</head>
+<body class="dashboard-body">
+
+    <div class="Sidebar">
+        <button class="sidebar-item">Calendar</button>
+        <button class="sidebar-item">Profile</button>
+        <button class="sidebar-item">Messages</button>
+        <button class="sidebar-item">Tasks</button>
+        <button class="sidebar-item">Settings</button>
+        <button class="sidebar-item">Help</button>
+        <button class="sidebar-item">Logout</button>
+    </div>
+
+    <div class="app-workspace">
+        <nav class="navbarD">
+            <div class="icon"></div>
+        </nav>
+
+        <main class="dashboard-grid">
+            
+            <div class="dashboard-card progress-wrapper">
+                <div class="progress-header">
+                    <h3 class="progress-title-label">Project Completion</h3>
+                    <h1 class="progress-text">16%</h1>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: 16%;"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-card last-message-card">
+                <h3 class="card-title">Last Message</h3>
+                <div class="message-preview">
+                    <p class="message-sender">Alex Rivera</p>
+                    <p class="message-text">Hey, did you finish checking the stats yet?</p>
+                </div>
+            </div>
+
+            <div class="dashboard-card to-doDiv">
+                <h2 class="to-do-title">To-Do List</h2>
+                
+                <div class="todo-row">
+                    <input type="checkbox" id="task1">
+                    <label for="task1" class="to-do-item">Finish project report</label>
+                </div>
+                <div class="todo-row">
+                    <input type="checkbox" id="task2">
+                    <label for="task2" class="to-do-item">Attend meeting at 3 PM</label>
+                </div>
+                <div class="todo-row">
+                    <input type="checkbox" id="task3">
+                    <label for="task3" class="to-do-item">Check the stats</label>
+                </div>
+                <div class="todo-row">
+                    <input type="checkbox" id="task4">
+                    <label for="task4" class="to-do-item">Study</label>
+                </div>
+                <div class="todo-row">
+                    <input type="checkbox" id="task5">
+                    <label for="task5" class="to-do-item">Check with the teacher</label>
+                </div>
+            </div>
+
+            <div class="calendarMain">
+                <div class="calendar-nav">
+                    <button id="prevMonth" class="cal-btn">&lt;</button>
+                    <div class="calendar-title-wrapper">
+                        <h3 id="monthYearDisplay" class="calendar-month-title">Month Year</h3>
+                        <span class="calendar-instruction">Click a day to circle, dot, or clear markers</span>
+                    </div>
+                    <button id="nextMonth" class="cal-btn">&gt;</button>
+                </div>
+                <div class="calendar-weekdays">
+                    <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                </div>
+                <div id="calendarDays" class="calendar-days-grid"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const monthYearDisplay = document.getElementById('monthYearDisplay');
+        const calendarDays = document.getElementById('calendarDays');
+        const prevBtn = document.getElementById('prevMonth');
+        const nextBtn = document.getElementById('nextMonth');
+
+        let currentDate = new Date();
+        
+        // Simple state object to remember marked dates across month switches
+        // Key format: "YYYY-MM-DD" -> value: 'block' | 'semi-block' | null
+        const markedDatesRegistry = {};
+
+        const months = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        function renderCalendar() {
+            calendarDays.innerHTML = "";
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            monthYearDisplay.innerText = `${months[month]} ${year}`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            // Render empty cells for leading alignment
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.classList.add('calendar-day', 'empty-day');
+                calendarDays.appendChild(emptyDiv);
+            }
+
+            // Populate current month's dates
+            for (let day = 1; day <= totalDays; day++) {
+                const dayWrapper = document.createElement('div');
+                dayWrapper.classList.add('calendar-day-container');
+
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('calendar-day');
+                dayDiv.innerText = day;
+
+                // Unique date identifier string
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Mark current day layout
+                if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayDiv.classList.add('today');
+                }
+
+                // Check stored states to render dynamic markers
+                if (markedDatesRegistry[dateKey] === 'block') {
+                    dayDiv.classList.add('marked-block');
+                } else if (markedDatesRegistry[dateKey] === 'semi-block') {
+                    dayDiv.classList.add('marked-semi-block');
+                }
+
+                // Click event listener to toggle through styles: None -> Full Block -> Semi-Block -> None
+                dayDiv.addEventListener('click', () => {
+                    if (!markedDatesRegistry[dateKey]) {
+                        markedDatesRegistry[dateKey] = 'block';
+                        dayDiv.classList.remove('marked-semi-block');
+                        dayDiv.classList.add('marked-block');
+                    } else if (markedDatesRegistry[dateKey] === 'block') {
+                        markedDatesRegistry[dateKey] = 'semi-block';
+                        dayDiv.classList.remove('marked-block');
+                        dayDiv.classList.add('marked-semi-block');
+                    } else {
+                        delete markedDatesRegistry[dateKey];
+                        dayDiv.classList.remove('marked-block', 'marked-semi-block');
+                    }
+                });
+
+                dayWrapper.appendChild(dayDiv);
+                calendarDays.appendChild(dayWrapper);
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        renderCalendar();
+    </script>
+</body>
+</html>
